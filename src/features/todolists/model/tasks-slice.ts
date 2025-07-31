@@ -3,8 +3,13 @@ import type { RootState } from "@/app/store"
 import { ResultCode } from "@/common/enums"
 import { catchErrorHandler, createAppSlice, handleServerAppError } from "@/common/utils"
 import { tasksApi } from "@/features/todolists/api/tasksApi"
-import { type DomainTask, domainTaskSchema, type UpdateTaskModel } from "@/features/todolists/api/tasksApi.types"
+import {
+  type DomainTask,
+  getTasksSchema, taskOperationResponseSchema,
+  type UpdateTaskModel
+} from "@/features/todolists/api/tasksApi.types"
 import { createTodolistTC, deleteTodolistTC } from "./todolists-slice"
+import { defaultResponseSchema } from "@/common/types"
 
 export const tasksSlice = createAppSlice({
   name: "tasks",
@@ -27,7 +32,7 @@ export const tasksSlice = createAppSlice({
         try {
           dispatch(setAppStatusAC({ status: "loading" }))
           const res = await tasksApi.getTasks(todolistId)
-          domainTaskSchema.array().parse(res.data.items) // 💎 ZOD
+          getTasksSchema.parse(res.data) // 💎 ZOD
           dispatch(setAppStatusAC({ status: "succeeded" }))
           return { todolistId, tasks: res.data.items }
         } catch (error) {
@@ -46,6 +51,7 @@ export const tasksSlice = createAppSlice({
         try {
           dispatch(setAppStatusAC({ status: "loading" }))
           const res = await tasksApi.createTask(payload)
+          taskOperationResponseSchema.parse(res.data) // 💎 ZOD
           if (res.data.resultCode === ResultCode.Success) {
             dispatch(setAppStatusAC({ status: "succeeded" }))
             return { task: res.data.data.item }
@@ -69,6 +75,7 @@ export const tasksSlice = createAppSlice({
         try {
           dispatch(setAppStatusAC({ status: "loading" }))
           const res = await tasksApi.deleteTask(payload)
+          defaultResponseSchema.parse(res.data) // 💎 ZOD
           if (res.data.resultCode === ResultCode.Success) {
             dispatch(setAppStatusAC({ status: "succeeded" }))
             return payload
@@ -118,6 +125,7 @@ export const tasksSlice = createAppSlice({
         try {
           dispatch(setAppStatusAC({ status: "loading" }))
           const res = await tasksApi.updateTask({ todolistId, taskId, model })
+          taskOperationResponseSchema.parse(res.data) // 💎 ZOD
           if (res.data.resultCode === ResultCode.Success) {
             dispatch(setAppStatusAC({ status: "succeeded" }))
             return { task: res.data.data.item }
