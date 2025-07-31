@@ -1,3 +1,3 @@
 export { createAppSlice } from "./createAppSlice"
-export { handleServerAppError } from "./handleServerAppError"
-export { catchErrorHandler } from "./catchErrorHandler.ts"
+export { handleError } from "./handleError.ts"
+export { isErrorWithMessage } from "./isErrorWithMessage.ts"

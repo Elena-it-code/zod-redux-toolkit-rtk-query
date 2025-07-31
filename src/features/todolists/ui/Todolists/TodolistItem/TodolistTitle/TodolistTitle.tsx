@@ -1,10 +1,11 @@
 import { EditableSpan } from "@/common/components"
 import { useAppDispatch } from "@/common/hooks"
 import {
-  changeTodolistTitleTC,
-  deleteTodolistTC,
-  type DomainTodolist,
-} from "@/features/todolists/model/todolists-slice"
+  todolistsApi,
+  useRemoveTodolistMutation,
+  useUpdateTodolistTitleMutation,
+} from "@/features/todolists/api/todolistsApi"
+import type { DomainTodolist } from "@/features/todolists/lib/types"
 import DeleteIcon from "@mui/icons-material/Delete"
 import IconButton from "@mui/material/IconButton"
 import styles from "./TodolistTitle.module.css"
@@ -16,14 +17,32 @@ type Props = {
 export const TodolistTitle = ({ todolist }: Props) => {
   const { id, title, entityStatus } = todolist
 
+  const [removeTodolist] = useRemoveTodolistMutation()
+  const [updateTodolistTitle] = useUpdateTodolistTitleMutation()
+
   const dispatch = useAppDispatch()
 
-  const deleteTodolist = () => {
-    dispatch(deleteTodolistTC(id))
+  const deleteTodolist = async () => {
+    const patchResult = dispatch(
+      todolistsApi.util.updateQueryData("getTodolists", undefined, (state) => {
+        const todolist = state.find((todolist) => todolist.id === id)
+        if (todolist) {
+          todolist.entityStatus = "loading"
+        }
+      }),
+    )
+    try {
+      const res = await removeTodolist(id)
+      if (res.error) {
+        patchResult.undo()
+      }
+    } catch {
+      patchResult.undo()
+    }
   }
 
   const changeTodolistTitle = (title: string) => {
-    dispatch(changeTodolistTitleTC({ id, title }))
+    updateTodolistTitle({ id, title })
   }
 
   return (

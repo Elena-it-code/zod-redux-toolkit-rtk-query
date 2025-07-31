@@ -7,8 +7,3 @@ export const loginSchema = z.object({
 })
 
 export type Inputs = z.infer<typeof loginSchema>
-
-// email: z
-//   .string()
-//   .min(1, { message: "Email is required (loginSchema) " })
-//   .regex(/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/, { message: "Invalid email address regex" }),

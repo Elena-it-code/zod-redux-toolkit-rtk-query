@@ -1,6 +1,6 @@
 import { TaskPriority, TaskStatus } from "@/common/enums"
-import { z } from "zod"
 import { baseResponseSchema } from "@/common/types"
+import { z } from "zod"
 
 export const domainTaskSchema = z.object({
   deadline: z.string().nullable(),
@@ -25,7 +25,6 @@ export const getTasksSchema = z.object({
 
 export type GetTasksResponse = z.infer<typeof getTasksSchema>
 
-// Create and update task
 export const taskOperationResponseSchema = baseResponseSchema(
   z.object({
     item: domainTaskSchema,

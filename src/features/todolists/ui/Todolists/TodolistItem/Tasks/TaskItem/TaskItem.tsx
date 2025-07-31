@@ -1,9 +1,9 @@
 import { EditableSpan } from "@/common/components/EditableSpan/EditableSpan"
 import { TaskStatus } from "@/common/enums"
-import { useAppDispatch } from "@/common/hooks"
+import { useRemoveTaskMutation, useUpdateTaskMutation } from "@/features/todolists/api/tasksApi"
 import type { DomainTask } from "@/features/todolists/api/tasksApi.types"
-import { deleteTaskTC, updateTaskTC } from "@/features/todolists/model/tasks-slice"
-import type { DomainTodolist } from "@/features/todolists/model/todolists-slice"
+import type { DomainTodolist } from "@/features/todolists/lib/types"
+import { createTaskModel } from "@/features/todolists/lib/utils"
 import DeleteIcon from "@mui/icons-material/Delete"
 import Checkbox from "@mui/material/Checkbox"
 import IconButton from "@mui/material/IconButton"
@@ -17,25 +17,22 @@ type Props = {
 }
 
 export const TaskItem = ({ task, todolist }: Props) => {
-  const dispatch = useAppDispatch()
+  const [removeTask] = useRemoveTaskMutation()
+  const [updateTask] = useUpdateTaskMutation()
 
   const deleteTask = () => {
-    dispatch(deleteTaskTC({ todolistId: todolist.id, taskId: task.id }))
+    removeTask({ todolistId: todolist.id, taskId: task.id })
   }
 
   const changeTaskStatus = (e: ChangeEvent<HTMLInputElement>) => {
-    const newStatusValue = e.currentTarget.checked
-    dispatch(
-      updateTaskTC({
-        todolistId: todolist.id,
-        taskId: task.id,
-        domainModel: { status: newStatusValue ? TaskStatus.Completed : TaskStatus.New },
-      }),
-    )
+    const status = e.currentTarget.checked ? TaskStatus.Completed : TaskStatus.New
+    const model = createTaskModel(task, { status })
+    updateTask({ taskId: task.id, todolistId: todolist.id, model })
   }
 
   const changeTaskTitle = (title: string) => {
-    dispatch(updateTaskTC({ todolistId: todolist.id, taskId: task.id, domainModel: { title } }))
+    const model = createTaskModel(task, { title })
+    updateTask({ taskId: task.id, todolistId: todolist.id, model })
   }
 
   const isTaskCompleted = task.status === TaskStatus.Completed
@@ -47,7 +44,7 @@ export const TaskItem = ({ task, todolist }: Props) => {
         <Checkbox checked={isTaskCompleted} onChange={changeTaskStatus} disabled={disabled} />
         <EditableSpan value={task.title} onChange={changeTaskTitle} disabled={disabled} />
       </div>
-      <span>{new Date(task.addedDate).toLocaleDateString()}</span>
+      <span style={{ fontSize: "10px" }}>{new Date(task.addedDate).toLocaleDateString()}</span>
       <IconButton onClick={deleteTask} disabled={disabled}>
         <DeleteIcon />
       </IconButton>
