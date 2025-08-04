@@ -1,7 +1,13 @@
 import { baseApi } from "@/app/baseApi"
 import { PAGE_SIZE } from "@/common/constants"
-import type { DefaultResponse } from "@/common/types"
-import { type GetTasksResponse, type TaskOperationResponse, type UpdateTaskModel } from "./tasksApi.types"
+import { DefaultResponse, defaultResponseSchema } from "@/common/types"
+import {
+  type GetTasksResponse,
+  getTasksSchema,
+  type TaskOperationResponse,
+  taskOperationResponseSchema,
+  type UpdateTaskModel,
+} from "./tasksApi.types"
 
 export const tasksApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
@@ -10,6 +16,18 @@ export const tasksApi = baseApi.injectEndpoints({
         url: `todo-lists/${todolistId}/tasks`,
         params: { ...params, count: PAGE_SIZE },
       }),
+      extraOptions: { dataSchema: getTasksSchema },
+      /*transformResponse: (res: GetTasksResponse) => {
+        try {
+          getTasksSchema.parse(res) // 💎 ZOD
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            console.table(error.issues)
+            alert("❌ Zod error. Смотри консоль")
+          }
+        }
+        return res
+      },*/
       providesTags: (_res, _err, { todolistId }) => [{ type: "Task", id: todolistId }],
     }),
     addTask: build.mutation<TaskOperationResponse, { todolistId: string; title: string }>({
@@ -18,6 +36,7 @@ export const tasksApi = baseApi.injectEndpoints({
         method: "POST",
         body: { title },
       }),
+      extraOptions: { dataSchema: taskOperationResponseSchema },
       invalidatesTags: (_res, _err, { todolistId }) => [{ type: "Task", id: todolistId }],
     }),
     removeTask: build.mutation<DefaultResponse, { todolistId: string; taskId: string }>({
@@ -25,6 +44,7 @@ export const tasksApi = baseApi.injectEndpoints({
         url: `todo-lists/${todolistId}/tasks/${taskId}`,
         method: "DELETE",
       }),
+      extraOptions: { dataSchema: defaultResponseSchema },
       invalidatesTags: (_res, _err, { todolistId }) => [{ type: "Task", id: todolistId }],
     }),
     updateTask: build.mutation<TaskOperationResponse, { todolistId: string; taskId: string; model: UpdateTaskModel }>({
@@ -57,6 +77,7 @@ export const tasksApi = baseApi.injectEndpoints({
           })
         }
       },
+      extraOptions: { dataSchema: taskOperationResponseSchema },
       invalidatesTags: (_res, _err, { todolistId }) => [{ type: "Task", id: todolistId }],
     }),
   }),
